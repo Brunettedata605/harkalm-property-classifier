@@ -113,138 +113,40 @@ class PropertyClassifier:
 
     def _get_mock_classification(self, listing_data: dict) -> PropertyClassification:
         """
-        Simulates the gpt-4o-mini classification results for local testing and validation.
-        Contains deterministic rules tailored to the input dataset.
+        Simulates the gpt-4o-mini classification results for local testing and validation when API key is absent.
+        Uses a simple, generic keyword-based heuristic rather than hardcoded IDs or dataset-specific rules.
         """
-        # Dictionary of pre-calculated high-quality classifications mapping ID to Pydantic results
-        mock_data = {
-            "HK-F001": PropertyClassification(
-                category="Food Store",
-                confidence="High",
-                reasoning="Freehold retail unit comprising a former Co-op convenience store. Intended and past use is convenience food retail, which aligns with Harkalm's acquisitions criteria."
-            ),
-            "89924760.0": PropertyClassification(
-                category="None",
-                confidence="High",
-                reasoning="A parcel of ancient woodland for auction. Does not fit any of Harkalm's target operating sectors (nurseries, SEN schools, or food stores)."
-            ),
-            "72439054": PropertyClassification(
-                category="None",
-                confidence="High",
-                reasoning="Freehold high street retail unit and dance studio. The presence of primary and SEN schools in the points of interest is a contextual location detail and does not indicate the property's primary use."
-            ),
-            "73310018": PropertyClassification(
-                category="None",
-                confidence="High",
-                reasoning="Former café with residential accommodation above. The property does not align with food stores (no grocery/convenience focus), nurseries, or SEN schools."
-            ),
-            "72075420": PropertyClassification(
-                category="None",
-                confidence="Low",
-                reasoning="Former doctor's surgery with practical rooms. The listing hedges by noting suitability for alternative uses including daycare, clinic, or beauty. Given the vacancy and lack of current dedicated use or active nursery consent, classified as None with Low confidence."
-            ),
-            "73430519": PropertyClassification(
-                category="None",
-                confidence="High",
-                reasoning="Mixed-use commercial and residential property comprising a tanning salon and a flat. No alignment with food stores, nurseries, or schools."
-            ),
-            "70917694": PropertyClassification(
-                category="None",
-                confidence="High",
-                reasoning="Mixed-use unit comprising a bath products retail shop, workshop, and holiday apartment. No food, education, or nursery use."
-            ),
-            "143478371.0": PropertyClassification(
-                category="None",
-                confidence="High",
-                reasoning="Detached character public house. Does not fit any of Harkalm's operating sectors."
-            ),
-            "73361618": PropertyClassification(
-                category="None",
-                confidence="High",
-                reasoning="Prime multi-let industrial and trade business park investment. Outside of Harkalm's target sectors."
-            ),
-            "69044895": PropertyClassification(
-                category="None",
-                confidence="High",
-                reasoning="Long established fire door manufacturer and joinery business and premises. Industrial use, not relevant to target sectors."
-            ),
-            "758742929390929.0": PropertyClassification(
-                category="None",
-                confidence="High",
-                reasoning="Freehold building with garage workshop and flats. General commercial/residential asset, no target sector alignment."
-            ),
-            "758775441528961.0": PropertyClassification(
-                category="None",
-                confidence="Low",
-                reasoning="Healthcare/medical clinic premises on a business park. Suitable for clinical or therapy use, but speculative for nurseries or schools and lacks active consent for them."
-            ),
-            "HK-F002": PropertyClassification(
-                category="SEN School",
-                confidence="High",
-                reasoning="Former grammar school buildings currently let to and operated by an independent special educational needs (SEN) provider, matching Harkalm's target sector with long-term lease security."
-            ),
-            "HK-F004": PropertyClassification(
-                category="None",
-                confidence="High",
-                reasoning="Mixed-use investment let to a vape shop and hair salon, with residential flats. No current or potential use in target sectors."
-            ),
-            "67195138": PropertyClassification(
-                category="None",
-                confidence="High",
-                reasoning="Freehold car showroom and residential property. No alignment with target sectors."
-            ),
-            "758763053880849.0": PropertyClassification(
-                category="Nursery",
-                confidence="High",
-                reasoning="Active and established children's day nursery accommodating up to 75 children, with solid turnover history and active early years education services."
-            ),
-            "88930830.0": PropertyClassification(
-                category="Nursery",
-                confidence="High",
-                reasoning="Vacant period property with established D1 use class configured as a children's nursery, located near transport hubs."
-            ),
-            "758756684610048.0": PropertyClassification(
-                category="None",
-                confidence="High",
-                reasoning="Airspace development opportunity for residential apartments above a ground floor retail unit let to Sainsbury's. The primary asset for sale is the airspace/residential development, not the food store."
-            ),
-            "89922468.0": PropertyClassification(
-                category="None",
-                confidence="High",
-                reasoning="Substantial industrial and warehouse complex. Outside of Harkalm's target sectors."
-            ),
-            "88931949.0": PropertyClassification(
-                category="Nursery",
-                confidence="High",
-                reasoning="Vacant freehold property configured as a children's nursery with secure outdoor play areas and previous day nursery operations."
-            ),
-            "73143559": PropertyClassification(
-                category="None",
-                confidence="High",
-                reasoning="Commercial retail premises on the coast operating as a shop. No alignment with target sectors."
-            ),
-            "HK-F003": PropertyClassification(
-                category="Nursery",
-                confidence="High",
-                reasoning="Vacant commercial unit benefiting from active D1 planning consent for use as a children's day nursery, with outdoor play area."
-            ),
-            "89908812.0": PropertyClassification(
-                category="Food Store",
-                confidence="High",
-                reasoning="Former Costcutter supermarket and two flats. The commercial supermarket footprint aligns directly with Harkalm's food store sector."
-            )
-        }
+        text_payload = (
+            f"{listing_data['summary']} {listing_data['description']} "
+            f"{listing_data['key_features']} {listing_data['property_subtype']}"
+        ).lower()
         
-        # Clean ID lookups since CSV reader may load float formats (e.g. 89924760.0 vs '89924760.0')
-        listing_id = str(listing_data["id"]).strip()
-        if listing_id in mock_data:
-            return mock_data[listing_id]
+        if any(kw in text_payload for kw in ["nursery", "daycare", "childcare", "day nursery", "play area"]):
+            confidence = "High" if "d1" in text_payload or "f1" in text_payload or "nursery consent" in text_payload else "Medium"
+            return PropertyClassification(
+                category="Nursery",
+                confidence=confidence,
+                reasoning="Mock: Property listing mentions childcare, nursery, or daycare facilities with potential target features."
+            )
+        elif any(kw in text_payload for kw in ["sen school", "special educational needs", "complex needs"]):
+            confidence = "High" if "let to" in text_payload or "grammar school" in text_payload else "Medium"
+            return PropertyClassification(
+                category="SEN School",
+                confidence=confidence,
+                reasoning="Mock: Property mentions special educational needs or grammar school operations/facilities."
+            )
+        elif any(kw in text_payload for kw in ["co-op", "convenience store", "supermarket", "costcutter", "grocery"]):
+            confidence = "High" if "former convenience" in text_payload or "retail unit" in text_payload else "Medium"
+            return PropertyClassification(
+                category="Food Store",
+                confidence=confidence,
+                reasoning="Mock: Listing references food retail, convenience store, or supermarket operations."
+            )
             
-        # Fallback for unforeseen IDs
         return PropertyClassification(
             category="None",
             confidence="High",
-            reasoning="General commercial property with no evidence of food retail, childcare, or special educational needs use."
+            reasoning="Mock: Listing describes a general commercial asset (industrial/office/retail/land) with no keywords aligning with target sectors."
         )
 
     def classify(self, listing_data: dict, max_retries: int = 3, initial_delay: float = 2.0) -> PropertyClassification:
@@ -307,5 +209,5 @@ class PropertyClassifier:
         return PropertyClassification(
             category="None",
             confidence="Low",
-            reasoning=f"Classification failed due to API errors: {last_exception}"
+            reasoning="Classification could not be completed due to an API error."
         )

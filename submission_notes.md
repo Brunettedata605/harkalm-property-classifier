@@ -12,6 +12,6 @@
 - **Batching & Async Calls**: Right now, the script processes listings sequentially. I'd implement async requests using `asyncio` to speed up processing for larger datasets.
 - **Few-Shot Examples**: Adding a few hand-labeled examples of edge cases directly into the system prompt would help align the model's reasoning on highly ambiguous listings.
 - **Evaluation Dataset**: I'd set up a small, hand-labeled "golden dataset" of 50-100 listings to run automated tests and calculate accuracy, precision, and recall before deploying prompt updates.
-- **Embeddings & RAG**: Instead of hardcoding prompt context, I would generate embeddings of our past successful acquisitions and retrieve similar properties dynamically to feed to the LLM as reference.
+- **Example Library Lookup**: Build a local database of previously classified listings and pull similar examples to inject as context in the prompt, helping the model make more consistent decisions on edge cases.
 - **Confidence Calibration**: I'd look into pulling logprobs (token probabilities) from the OpenAI API to mathematically calibrate the `High/Medium/Low` confidence scores.
-- **Cost & Latency Optimization**: Agent descriptions can be massive walls of text. Trimming down the input tokens to only relevant sections and testing smaller, cheaper models (like Llama 3 or GPT-3.5) would save money and run faster.
+- **Cost & Latency Optimization**: Agent descriptions can be massive walls of text. Trimming down the input tokens to only relevant sections and testing smaller, cheaper models would save money and run faster.

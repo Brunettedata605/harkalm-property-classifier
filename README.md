@@ -6,7 +6,7 @@ A Python-based AI tool designed to parse, preprocess, and classify commercial pr
 - **Food Store**
 - **None** (unmatched or ambiguous properties)
 
-The classifier leverages OpenAI's structured outputs (`gpt-4o-mini`) via a Pydantic validation schema, ensuring reliable, parseable results without forcing incorrect classifications on ambiguous or weak data.
+The classifier uses OpenAI's structured outputs (`gpt-4o-mini`) via a Pydantic validation schema, ensuring reliable, parseable results without forcing incorrect classifications on ambiguous or weak data.
 
 ## Project Structure
 * `main.py` - Orchestrator that parses CLI arguments, runs the ingestion, invokes classification, and writes results.
@@ -17,10 +17,10 @@ The classifier leverages OpenAI's structured outputs (`gpt-4o-mini`) via a Pydan
 * `.env.example` - Example configuration file for environment variables.
 * `submission_notes.md` - Analysis of assumptions, ambiguity strategy, and areas of future improvement.
 
-## Mock Mode (Zero-Config Testing)
+## Mock Mode
 To make local evaluation as easy as possible, the script has a built-in **Mock Mode**.
 - If `OPENAI_API_KEY` is not found or is empty in your `.env` file, the script will display a warning and run using local, deterministic mock classifications.
-- The mock classifications map directly to the `listings.csv` dataset, returning the exact categories, confidence levels, and reasoning strings that the live model would produce.
+- The mock classifications use simple keyword-based heuristics (analyzing text tokens for target sectors) to simulate classification outcomes locally.
 - Once you provide a valid API key, the script will automatically switch to making live OpenAI API calls.
 
 ## Setup Instructions
