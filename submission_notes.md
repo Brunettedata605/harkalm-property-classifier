@@ -1,18 +1,17 @@
 # Submission Notes: Property Listing Classifier
 
 ## 1. Assumptions Made
-- **Contextual Guidance vs. Rigid Rules**: Harkalm's three core operating sectors (nurseries, SEN schools, and food stores) were used as contextual guides to evaluate a property's fit, rather than rigid keyword matching rules.
-- **Priority of Intended Use**: Property classification prioritized the actual, historical, or primary intended use. We assumed that nearby features (e.g., local primary schools listed as points of interest) or adjacent tenants do not determine the subject property's classification unless it is actively let to/operated by a target user.
+- **Acquisitions Context vs. Hard Rules**: I reviewed Harkalm's acquisitions criteria and used them as contextual guidelines rather than hard, keyword-matching filters. I tried to focus on what the property's *actual* or *intended* use is, rather than just matching text patterns.
+- **Intended Use over Adjacencies**: I assumed that just because a property is near a school or has an SEN school listed as a "point of interest" in the agent data, that doesn't make the property itself an SEN school. The listing must describe a property actively set up for or let to an education provider.
 
-## 2. Handling of Ambiguous Listings
-- **Avoiding Forced Classifications**: Agent copy frequently hedges by listing speculative alternative uses ("suitable for nursery, clinic, or gym, subject to planning"). We deliberately avoided forcing these into active categories, classifying them as `None` or utilizing `Low` or `Medium` confidence levels to reflect the planning/market uncertainty.
-- **Vacancy & Planning Consent**: Properties with relevant use classes (e.g., D1/F1) but no established operations, fit-out, or active operators were flagged as `None` with `Low` confidence, ensuring acquisitions teams can distinguish between active deals and raw conversion opportunities.
+## 2. Handling Ambiguity
+- **No Forced Classifications**: Real estate agent copy is notoriously messy and speculative (often claiming a site is "suitable for a variety of alternative uses like daycare, clinics, or gyms, subject to planning"). I instructed the model not to force these into active classifications if there's no actual history of that use. In these cases, it defaults to `None` or flags the confidence as `Low` or `Medium`.
+- **Vacant vs. Operational**: If a property has the right planning consent (like F1/D1) but is completely vacant and needs a full refit, it’s flagged as a conversion opportunity rather than a confident match. I kept the confidence lower here so the acquisitions team knows it's a project rather than a ready-to-go acquisition.
 
-## 3. Future Improvements
-With more time, the following enhancements would be made:
-- **Batching & Async Requests**: Implement concurrent request processing to scale classification throughput.
-- **Few-Shot Prompting**: Introduce curated, high-quality examples (few-shot learning) in the prompt to align classification reasoning on edge cases.
-- **Evaluation Dataset**: Build a small, golden test set of labeled listings to calculate classification precision, recall, and accuracy metrics.
-- **Embeddings & Semantic Search (RAG)**: Use embeddings to dynamically retrieve the most similar historical deals from Harkalm's database as reference context for the LLM.
-- **Confidence Calibration**: Apply temperature scaling or logprob analysis to calibrate confidence scores.
-- **Cost & Latency Optimization**: Optimize token usage by trimming verbose agent copy and benchmarking smaller open-source models (e.g., Llama 3) for lower operational costs.
+## 3. What I'd Improve with More Time
+- **Batching & Async Calls**: Right now, the script processes listings sequentially. I'd implement async requests using `asyncio` to speed up processing for larger datasets.
+- **Few-Shot Examples**: Adding a few hand-labeled examples of edge cases directly into the system prompt would help align the model's reasoning on highly ambiguous listings.
+- **Evaluation Dataset**: I'd set up a small, hand-labeled "golden dataset" of 50-100 listings to run automated tests and calculate accuracy, precision, and recall before deploying prompt updates.
+- **Embeddings & RAG**: Instead of hardcoding prompt context, I would generate embeddings of our past successful acquisitions and retrieve similar properties dynamically to feed to the LLM as reference.
+- **Confidence Calibration**: I'd look into pulling logprobs (token probabilities) from the OpenAI API to mathematically calibrate the `High/Medium/Low` confidence scores.
+- **Cost & Latency Optimization**: Agent descriptions can be massive walls of text. Trimming down the input tokens to only relevant sections and testing smaller, cheaper models (like Llama 3 or GPT-3.5) would save money and run faster.

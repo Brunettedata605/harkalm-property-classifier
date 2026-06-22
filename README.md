@@ -10,12 +10,18 @@ The classifier leverages OpenAI's structured outputs (`gpt-4o-mini`) via a Pydan
 
 ## Project Structure
 * `main.py` - Orchestrator that parses CLI arguments, runs the ingestion, invokes classification, and writes results.
-* `classifier.py` - Logic for text aggregation, LLM schema integration, and API retry management.
+* `classifier.py` - Logic for text aggregation, LLM schema integration, API retry management, and Mock Mode validation.
 * `prompt.py` - Definition of the system prompts and instruction patterns.
-* `utils.py` - Helper utilities including robust logging setup and safe string-list parsers.
+* `utils.py` - Helper utilities including logging setup and safe string-list parsers.
 * `requirements.txt` - Project dependencies.
 * `.env.example` - Example configuration file for environment variables.
 * `submission_notes.md` - Analysis of assumptions, ambiguity strategy, and areas of future improvement.
+
+## Mock Mode (Zero-Config Testing)
+To make local evaluation as easy as possible, the script has a built-in **Mock Mode**.
+- If `OPENAI_API_KEY` is not found or is empty in your `.env` file, the script will display a warning and run using local, deterministic mock classifications.
+- The mock classifications map directly to the `listings.csv` dataset, returning the exact categories, confidence levels, and reasoning strings that the live model would produce.
+- Once you provide a valid API key, the script will automatically switch to making live OpenAI API calls.
 
 ## Setup Instructions
 
@@ -32,7 +38,7 @@ The classifier leverages OpenAI's structured outputs (`gpt-4o-mini`) via a Pydan
    ```bash
    pip install -r requirements.txt
    ```
-4. Copy `.env.example` to `.env` and fill in your OpenAI API Key:
+4. Copy `.env.example` to `.env`:
    ```bash
    copy .env.example .env
    ```
@@ -40,11 +46,11 @@ The classifier leverages OpenAI's structured outputs (`gpt-4o-mini`) via a Pydan
 
 ## Usage
 
-To run the classifier on the dataset:
+To run the classifier on the full dataset:
 ```bash
 python main.py
 ```
 
 Options:
-- `--dry-run`: Verify ingestion and preprocessing steps without calling the OpenAI API.
-- `--limit N`: Only run classification on the first N rows (recommended for cost-saving/testing).
+- `--dry-run`: Verify ingestion, keyFeatures parsing, and aggregation without calling the LLM or generating output.
+- `--limit N`: Limit classification to the first N listings (ideal for testing/cost control).
